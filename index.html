@@ -49,11 +49,49 @@
             color: var(--fg);
             transition: background-color 0s, color 0s;
             overflow-x: hidden;
-            /* Symmetric iPhone Notch & Safe Area padding */
-            padding-top: max(3rem, env(safe-area-inset-top));
+            margin: 0;
+            /* Top padding is now handled by the sticky header to cover the notch */
             padding-bottom: max(3rem, env(safe-area-inset-bottom));
             padding-left: max(1rem, env(safe-area-inset-left));
             padding-right: max(1rem, env(safe-area-inset-right));
+        }
+
+        /* Sticky Header */
+        #main-header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            /* Apply safe area directly to the header so background goes behind notch */
+            padding-top: max(1.5rem, env(safe-area-inset-top));
+            border-bottom: 4px solid var(--fg);
+            transition: all 0.3s ease;
+        }
+
+        /* Slim state for header when scrolling */
+        #main-header.slim {
+            padding-top: max(0.5rem, env(safe-area-inset-top));
+            padding-bottom: 0.5rem;
+        }
+
+        #main-header.slim #header-title {
+            font-size: 1.5rem;
+            line-height: 1.2;
+        }
+
+        #main-header.slim #progress-text {
+            font-size: 0.75rem;
+            margin-top: 0;
+        }
+
+        #main-header.slim .brutal-btn {
+            min-height: 36px;
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        #header-title, #progress-text {
+            transition: all 0.3s ease;
         }
 
         /* Brutalist UI Components */
@@ -71,14 +109,15 @@
             .brutal-shadow { box-shadow: 8px 8px 0px var(--fg); }
         }
 
+        /* Buttons (Boundaries Removed) */
         .brutal-btn {
             background-color: var(--bg);
             color: var(--fg);
-            border: 3px solid var(--fg);
+            border: none; /* Button boundaries removed */
             box-shadow: 4px 4px 0px var(--fg);
             text-transform: uppercase;
             font-weight: bold;
-            transition: transform 0.1s, box-shadow 0.1s;
+            transition: transform 0.1s, box-shadow 0.1s, all 0.3s ease;
             cursor: pointer;
             min-height: 44px; /* Touch target size for mobile */
         }
@@ -91,11 +130,11 @@
         .brutal-btn-accent {
             background-color: var(--accent);
             color: var(--accent-fg);
-            border: 3px solid var(--fg);
+            border: none; /* Button boundaries removed */
             box-shadow: 4px 4px 0px var(--fg);
             text-transform: uppercase;
             font-weight: bold;
-            transition: transform 0.1s, box-shadow 0.1s;
+            transition: transform 0.1s, box-shadow 0.1s, all 0.3s ease;
             cursor: pointer;
             min-height: 44px;
         }
@@ -107,7 +146,6 @@
 
         @media (min-width: 768px) {
             .brutal-btn, .brutal-btn-accent {
-                border-width: 4px;
                 box-shadow: 6px 6px 0px var(--fg);
             }
             .brutal-btn:active, .brutal-btn-accent:active {
@@ -155,68 +193,71 @@
         .hide { display: none !important; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col p-4 md:p-8" data-theme="0">
+<body class="min-h-screen flex flex-col" data-theme="0">
 
-    <!-- Header -->
-    <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-8 gap-3 md:gap-4 brutal-border p-3 md:p-4 bg-[var(--bg)] brutal-shadow relative z-10">
+    <!-- Header (Now Sticky) -->
+    <header id="main-header" class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 md:gap-4 p-4 md:p-6 bg-[var(--bg)] brutal-shadow w-full">
         <div class="w-full md:w-auto">
-            <h1 class="text-2xl md:text-5xl font-bold uppercase tracking-tighter leading-tight" id="header-title">GrandMA3 Setup</h1>
+            <h1 class="text-3xl md:text-5xl font-bold uppercase tracking-tighter leading-tight" id="header-title">GrandMA3 Setup</h1>
             <p class="text-sm md:text-lg font-bold mt-1 md:mt-2" id="progress-text">PROGRESS: 0 / 16</p>
         </div>
         <div class="flex gap-2 w-full md:w-auto">
-            <button id="save-exit-btn" class="brutal-btn px-4 py-2 md:px-6 md:py-3 text-sm md:text-lg flex-1 md:flex-none bg-[var(--accent)] text-[var(--accent-fg)] border-[var(--fg)]">SAVE & EXIT</button>
+            <button id="save-exit-btn" class="brutal-btn px-4 py-2 md:px-6 md:py-3 text-sm md:text-lg flex-1 md:flex-none bg-[var(--accent)] text-[var(--accent-fg)]">SAVE & EXIT</button>
             <button id="theme-btn" class="brutal-btn px-4 py-2 md:px-6 md:py-3 text-sm md:text-lg flex-1 md:flex-none">THEME</button>
         </div>
     </header>
 
-    <!-- Start Screen -->
-    <main id="start-screen" class="flex-grow flex items-center justify-center flex-col z-10 w-full gap-8">
-        
-        <!-- Create New Show -->
-        <div class="brutal-border p-6 md:p-8 brutal-shadow bg-[var(--bg)] w-full max-w-2xl text-center flex flex-col gap-4">
-            <h2 class="text-xl md:text-3xl font-bold leading-tight bg-[var(--fg)] text-[var(--bg)] py-2 uppercase">Create New Show</h2>
+    <!-- Content Wrapper to add padding below the sticky header -->
+    <div class="p-4 md:p-8 flex-grow flex flex-col">
+        <!-- Start Screen -->
+        <main id="start-screen" class="flex-grow flex items-center justify-center flex-col z-10 w-full gap-8 mt-6 md:mt-8">
             
-            <div class="text-left flex flex-col gap-2 mt-4">
-                <label class="font-bold uppercase text-sm md:text-lg">Show Name (Required):</label>
-                <input type="text" id="show-name-input" class="brutal-input text-lg md:text-2xl font-bold" placeholder="E.G. SUMMER FESTIVAL 2026">
+            <!-- Create New Show -->
+            <div class="brutal-border p-6 md:p-8 brutal-shadow bg-[var(--bg)] w-full max-w-2xl text-center flex flex-col gap-4">
+                <h2 class="text-xl md:text-3xl font-bold leading-tight bg-[var(--fg)] text-[var(--bg)] py-2 uppercase">Create New Show</h2>
+                
+                <div class="text-left flex flex-col gap-2 mt-4">
+                    <label class="font-bold uppercase text-sm md:text-lg">Show Name (Required):</label>
+                    <input type="text" id="show-name-input" class="brutal-input text-lg md:text-2xl font-bold" placeholder="E.G. SUMMER FESTIVAL 2026">
+                </div>
+
+                <div class="text-left flex flex-col gap-2 mb-4">
+                    <label class="font-bold uppercase text-sm md:text-lg">Location (Optional):</label>
+                    <input type="text" id="show-location-input" class="brutal-input text-lg md:text-2xl font-bold" placeholder="E.G. MAIN STAGE">
+                </div>
+
+                <button id="start-btn" class="brutal-btn-accent text-xl md:text-3xl px-4 py-6 md:px-8 w-full">START SETUP SEQUENCE</button>
             </div>
 
-            <div class="text-left flex flex-col gap-2 mb-4">
-                <label class="font-bold uppercase text-sm md:text-lg">Location (Optional):</label>
-                <input type="text" id="show-location-input" class="brutal-input text-lg md:text-2xl font-bold" placeholder="E.G. MAIN STAGE">
+            <!-- Recent Shows -->
+            <div id="recent-shows-wrapper" class="w-full max-w-2xl hidden">
+                <h3 class="text-lg md:text-2xl font-bold mb-4 uppercase text-center border-b-4 border-[var(--fg)] pb-2">Recent Shows</h3>
+                <div id="recent-shows-list" class="flex flex-col gap-4">
+                    <!-- Injected via JS -->
+                </div>
             </div>
 
-            <button id="start-btn" class="brutal-btn-accent text-xl md:text-3xl px-4 py-6 md:px-8 w-full">START SETUP SEQUENCE</button>
-        </div>
+        </main>
 
-        <!-- Recent Shows -->
-        <div id="recent-shows-wrapper" class="w-full max-w-2xl hidden">
-            <h3 class="text-lg md:text-2xl font-bold mb-4 uppercase text-center border-b-4 border-[var(--fg)] pb-2">Recent Shows</h3>
-            <div id="recent-shows-list" class="flex flex-col gap-4">
-                <!-- Injected via JS -->
+        <!-- App Content -->
+        <main id="app-content" class="flex-grow hidden flex-col max-w-4xl mx-auto w-full z-10 pb-24 relative">
+            
+            <div id="steps-container" class="flex flex-col gap-12 pt-[10vh] pb-[50vh]">
+                <!-- Steps will be generated here -->
             </div>
-        </div>
 
-    </main>
-
-    <!-- App Content -->
-    <main id="app-content" class="flex-grow hidden flex-col max-w-4xl mx-auto w-full z-10 pb-24 relative">
-        
-        <div id="steps-container" class="flex flex-col gap-12 pt-[20vh] pb-[50vh]">
-            <!-- Steps will be generated here -->
-        </div>
-
-        <div id="finish-screen" class="hidden brutal-border p-8 md:p-12 brutal-shadow bg-[var(--accent)] text-[var(--accent-fg)] text-center mt-6 md:mt-8">
-            <h2 class="text-3xl md:text-5xl font-bold mb-3 md:mb-4 leading-tight">SETUP COMPLETE</h2>
-            <p class="text-lg md:text-2xl font-bold mb-6">ALL SYSTEMS GO. REVIEW YOUR NOTES OR COPY THE SUMMARY BELOW.</p>
-            <textarea id="summary-textarea" class="brutal-input text-base md:text-lg font-bold w-full text-left bg-[var(--bg)] text-[var(--fg)] p-4 mb-4 overflow-hidden" readonly></textarea>
-            <button id="copy-summary-btn" class="brutal-btn w-full py-4 text-xl">COPY SUMMARY TO CLIPBOARD</button>
-        </div>
-        
-        <button id="jump-to-active-btn" class="hidden fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 brutal-btn-accent px-6 py-4 text-xl md:text-2xl w-[90%] md:w-auto whitespace-nowrap brutal-shadow">
-            RETURN TO ACTIVE STEP
-        </button>
-    </main>
+            <div id="finish-screen" class="hidden brutal-border p-8 md:p-12 brutal-shadow bg-[var(--accent)] text-[var(--accent-fg)] text-center mt-6 md:mt-8">
+                <h2 class="text-3xl md:text-5xl font-bold mb-3 md:mb-4 leading-tight">SETUP COMPLETE</h2>
+                <p class="text-lg md:text-2xl font-bold mb-6">ALL SYSTEMS GO. REVIEW YOUR NOTES OR COPY THE SUMMARY BELOW.</p>
+                <textarea id="summary-textarea" class="brutal-input text-base md:text-lg font-bold w-full text-left bg-[var(--bg)] text-[var(--fg)] p-4 mb-4 overflow-hidden border-2" readonly></textarea>
+                <button id="copy-summary-btn" class="brutal-btn w-full py-4 text-xl bg-[var(--bg)] text-[var(--fg)]">COPY SUMMARY TO CLIPBOARD</button>
+            </div>
+            
+            <button id="jump-to-active-btn" class="hidden fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 brutal-btn-accent px-6 py-4 text-xl md:text-2xl w-[90%] md:w-auto whitespace-nowrap brutal-shadow">
+                RETURN TO ACTIVE STEP
+            </button>
+        </main>
+    </div>
 
     <!-- Visual Warning Overlay -->
     <div id="warning-overlay" class="hidden fixed inset-0 z-50 flex-col items-center justify-center text-center p-4 md:p-8 pointer-events-none">
@@ -255,6 +296,7 @@
         const totalSteps = checklist.length;
 
         // --- DOM Elements ---
+        const mainHeader = document.getElementById('main-header');
         const startScreen = document.getElementById('start-screen');
         const appContent = document.getElementById('app-content');
         const startBtn = document.getElementById('start-btn');
@@ -314,6 +356,15 @@
             osc.start(now);
             osc.stop(now + 0.5);
         }
+
+        // --- Header Slimming Logic ---
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 20) {
+                mainHeader.classList.add('slim');
+            } else {
+                mainHeader.classList.remove('slim');
+            }
+        });
 
         // --- Data Persistence ---
         function getSavedShows() {
@@ -431,7 +482,7 @@
 
                     <div class="mb-4 md:mb-6">
                         <label class="block font-bold mb-1 md:mb-2 text-sm md:text-lg uppercase">Remarks / Notes:</label>
-                        <textarea id="remark-${index}" rows="3" class="brutal-input text-base md:text-lg font-bold" placeholder="ENTER REMARKS HERE...">${item.remarks}</textarea>
+                        <textarea id="remark-${index}" rows="3" class="brutal-input text-base md:text-lg font-bold border-2" placeholder="ENTER REMARKS HERE...">${item.remarks}</textarea>
                     </div>
 
                     <button id="btn-complete-${index}" class="brutal-btn-accent w-full py-4 md:py-6 text-lg md:text-3xl hidden">
@@ -539,7 +590,9 @@
                 generateSummary();
                 
                 setTimeout(() => {
-                    finishScreen.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    // Offset scroll position slightly so sticky header doesn't cover title
+                    const y = finishScreen.getBoundingClientRect().top + window.scrollY - 100;
+                    window.scrollTo({top: y, behavior: 'smooth'});
                 }, 100);
                 return;
             }
@@ -548,7 +601,9 @@
             const activeEl = document.getElementById(`step-${currentIndex}`);
             if (activeEl) {
                 setTimeout(() => {
-                    activeEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    // Scroll into view with offset for sticky header
+                    const y = activeEl.getBoundingClientRect().top + window.scrollY - 120;
+                    window.scrollTo({top: y, behavior: 'smooth'});
                     setupObserver(activeEl);
                 }, 100);
             }
@@ -603,6 +658,7 @@
             jumpToActiveBtn.classList.add('hidden');
             headerTitle.innerText = "GrandMA3 Setup";
             saveExitBtn.innerText = "SAVE & EXIT";
+            window.scrollTo(0,0);
             
             // Clear inputs
             showNameInput.value = '';
@@ -614,7 +670,8 @@
         jumpToActiveBtn.addEventListener('click', () => {
             const activeEl = document.getElementById(`step-${currentIndex}`);
             if (activeEl) {
-                activeEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                const y = activeEl.getBoundingClientRect().top + window.scrollY - 120;
+                window.scrollTo({top: y, behavior: 'smooth'});
             }
         });
 
