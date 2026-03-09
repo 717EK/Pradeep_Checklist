@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="theme-color" content="#E5E5E5">
+    <meta name="theme-color" content="#111111">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Show Checklist PWA</title>
@@ -12,35 +12,47 @@
         @import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap');
 
         :root {
-            /* Theme 0: Default Brutalist Light */
-            --bg: #E5E5E5;
-            --fg: #111111;
-            --accent: #FF3300;
-            --accent-fg: #111111;
+            /* Theme 0: Dark Mode Red (Matches Uploaded Image) */
+            --bg: #111111;
+            --surface: #1E1E1E;
+            --fg: #FFFFFF;
+            --border: #333333;
+            --accent: #E50914; /* Cinematic Red */
+            --accent-fg: #FFFFFF;
+            --radius: 8px; /* Slightly rounded for sleekness */
         }
 
         [data-theme="1"] {
-            /* Theme 1: High Contrast Blue */
-            --bg: #0000FF;
-            --fg: #FFFFFF;
-            --accent: #FFFF00;
-            --accent-fg: #000000;
+            /* Theme 1: Original Brutalist Light */
+            --bg: #E5E5E5;
+            --surface: #FFFFFF;
+            --fg: #111111;
+            --border: #111111;
+            --accent: #FF3300;
+            --accent-fg: #111111;
+            --radius: 0px;
         }
 
         [data-theme="2"] {
             /* Theme 2: Hacker Terminal */
-            --bg: #111111;
+            --bg: #0A0A0A;
+            --surface: #111111;
             --fg: #00FF00;
-            --accent: #FF00FF;
-            --accent-fg: #FFFFFF;
+            --border: #004400;
+            --accent: #00FF00;
+            --accent-fg: #0A0A0A;
+            --radius: 0px;
         }
 
         [data-theme="3"] {
-            /* Theme 3: Warning Yellow */
-            --bg: #FFFF00;
-            --fg: #111111;
-            --accent: #0000FF;
-            --accent-fg: #FFFFFF;
+            /* Theme 3: High Contrast Blue */
+            --bg: #0000FF;
+            --surface: #0000CC;
+            --fg: #FFFFFF;
+            --border: #FFFFFF;
+            --accent: #FFFF00;
+            --accent-fg: #000000;
+            --radius: 0px;
         }
 
         body {
@@ -63,7 +75,7 @@
             z-index: 100;
             /* Apply safe area directly to the header so background goes behind notch */
             padding-top: max(1.5rem, env(safe-area-inset-top));
-            border-bottom: 4px solid var(--fg);
+            border-bottom: 2px solid var(--border);
             transition: all 0.3s ease;
         }
 
@@ -99,27 +111,29 @@
             transition: all 0.3s ease;
         }
 
-        /* Brutalist UI Components */
+        /* Sleek UI Components */
         .brutal-border {
-            border: 3px solid var(--fg);
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
         }
         @media (min-width: 768px) {
-            .brutal-border { border: 4px solid var(--fg); }
+            .brutal-border { border: 2px solid var(--border); }
         }
 
         .brutal-shadow {
-            box-shadow: 4px 4px 0px var(--fg);
+            box-shadow: 4px 4px 0px var(--border);
         }
         @media (min-width: 768px) {
-            .brutal-shadow { box-shadow: 8px 8px 0px var(--fg); }
+            .brutal-shadow { box-shadow: 6px 6px 0px var(--border); }
         }
 
         /* Buttons (Boundaries Removed) */
         .brutal-btn {
-            background-color: var(--bg);
+            background-color: var(--surface);
             color: var(--fg);
-            border: none; /* Button boundaries removed */
-            box-shadow: 4px 4px 0px var(--fg);
+            border: none;
+            border-radius: var(--radius);
+            box-shadow: 4px 4px 0px var(--border);
             text-transform: uppercase;
             font-weight: bold;
             transition: transform 0.1s, box-shadow 0.1s, all 0.3s ease;
@@ -129,14 +143,15 @@
 
         .brutal-btn:active {
             transform: translate(4px, 4px);
-            box-shadow: 0px 0px 0px var(--fg);
+            box-shadow: 0px 0px 0px var(--border);
         }
 
         .brutal-btn-accent {
             background-color: var(--accent);
             color: var(--accent-fg);
-            border: none; /* Button boundaries removed */
-            box-shadow: 4px 4px 0px var(--fg);
+            border: none;
+            border-radius: var(--radius);
+            box-shadow: 4px 4px 0px var(--border);
             text-transform: uppercase;
             font-weight: bold;
             transition: transform 0.1s, box-shadow 0.1s, all 0.3s ease;
@@ -146,12 +161,12 @@
 
         .brutal-btn-accent:active {
             transform: translate(4px, 4px);
-            box-shadow: 0px 0px 0px var(--fg);
+            box-shadow: 0px 0px 0px var(--border);
         }
 
         @media (min-width: 768px) {
             .brutal-btn, .brutal-btn-accent {
-                box-shadow: 6px 6px 0px var(--fg);
+                box-shadow: 6px 6px 0px var(--border);
             }
             .brutal-btn:active, .brutal-btn-accent:active {
                 transform: translate(6px, 6px);
@@ -161,8 +176,9 @@
         .brutal-input {
             background-color: var(--bg);
             color: var(--fg);
-            border: 4px solid var(--fg);
-            padding: 0.5rem;
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
+            padding: 0.75rem;
             width: 100%;
             outline: none;
             resize: vertical;
@@ -170,7 +186,6 @@
 
         .brutal-input:focus {
             border-color: var(--accent);
-            box-shadow: 6px 6px 0px var(--accent);
         }
 
         /* Warning Overlay Animation */
@@ -201,25 +216,25 @@
 <body class="min-h-screen flex flex-col" data-theme="0">
 
     <!-- Header (Now Sticky) -->
-    <header id="main-header" class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 md:gap-4 p-4 md:p-6 bg-[var(--bg)] brutal-shadow w-full">
+    <header id="main-header" class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 md:gap-4 p-4 md:p-6 bg-[var(--surface)] brutal-shadow w-full">
         <div class="w-full md:w-auto flex items-center">
-            <!-- Embedded Brutalist Logo -->
+            <!-- Embedded Sleek Logo -->
             <svg id="header-logo" class="w-10 h-10 md:w-14 md:h-14 mr-3 md:mr-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <!-- Clipboard Background -->
-                <rect x="4" y="4" width="16" height="18" fill="var(--bg)" stroke="var(--fg)" stroke-width="2.5" stroke-linejoin="miter"/>
+                <rect x="4" y="4" width="16" height="18" rx="2" fill="var(--bg)" stroke="var(--border)" stroke-width="2.5" stroke-linejoin="miter"/>
                 <!-- Clip -->
-                <rect x="8" y="2" width="8" height="5" fill="var(--accent)" stroke="var(--fg)" stroke-width="2.5" stroke-linejoin="miter"/>
-                <!-- Brutalist Checkmark -->
-                <path d="M7 13L10.5 16.5L17 9" stroke="var(--fg)" stroke-width="3" stroke-linecap="square" stroke-linejoin="miter"/>
+                <rect x="8" y="2" width="8" height="5" rx="1" fill="var(--accent)" stroke="var(--border)" stroke-width="2.5" stroke-linejoin="miter"/>
+                <!-- Checkmark -->
+                <path d="M7 13L10.5 16.5L17 9" stroke="var(--fg)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
             <div>
                 <h1 class="text-3xl md:text-5xl font-bold uppercase tracking-tighter leading-tight" id="header-title">Show Checklist</h1>
-                <p class="text-sm md:text-lg font-bold mt-1 md:mt-2 hidden" id="progress-text">PROGRESS: 0 / 16</p>
+                <p class="text-sm md:text-lg font-bold mt-1 md:mt-2 hidden text-[var(--accent)]" id="progress-text">PROGRESS: 0 / 16</p>
             </div>
         </div>
         <div class="flex gap-2 w-full md:w-auto mt-2 md:mt-0">
-            <button id="load-shows-btn" class="brutal-btn px-4 py-2 md:px-6 md:py-3 text-sm md:text-lg flex-1 md:flex-none bg-[var(--accent)] text-[var(--accent-fg)]">LOAD</button>
-            <button id="save-exit-btn" class="hidden brutal-btn px-4 py-2 md:px-6 md:py-3 text-sm md:text-lg flex-1 md:flex-none bg-[var(--accent)] text-[var(--accent-fg)]">SAVE & EXIT</button>
+            <button id="load-shows-btn" class="brutal-btn-accent px-4 py-2 md:px-6 md:py-3 text-sm md:text-lg flex-1 md:flex-none">LOAD</button>
+            <button id="save-exit-btn" class="hidden brutal-btn px-4 py-2 md:px-6 md:py-3 text-sm md:text-lg flex-1 md:flex-none">SAVE & EXIT</button>
             <button id="theme-btn" class="brutal-btn px-4 py-2 md:px-6 md:py-3 text-sm md:text-lg flex-1 md:flex-none">THEME</button>
         </div>
     </header>
@@ -230,16 +245,16 @@
         <main id="start-screen" class="flex-grow flex items-center justify-center flex-col z-10 w-full gap-8 mt-6 md:mt-8">
             
             <!-- Create New Show -->
-            <div class="brutal-border p-6 md:p-8 brutal-shadow bg-[var(--bg)] w-full max-w-2xl text-center flex flex-col gap-4">
-                <h2 class="text-xl md:text-3xl font-bold leading-tight bg-[var(--fg)] text-[var(--bg)] py-2 uppercase">Create New Show</h2>
+            <div class="brutal-border p-6 md:p-8 brutal-shadow bg-[var(--surface)] w-full max-w-2xl text-center flex flex-col gap-4">
+                <h2 class="text-xl md:text-3xl font-bold leading-tight text-[var(--fg)] border-b-2 border-[var(--border)] pb-4 uppercase">Create New Show</h2>
                 
                 <div class="text-left flex flex-col gap-2 mt-4">
-                    <label class="font-bold uppercase text-sm md:text-lg">Show Name (Required):</label>
+                    <label class="font-bold uppercase text-sm md:text-lg text-[var(--fg)] opacity-80">Show Name (Required):</label>
                     <input type="text" id="show-name-input" class="brutal-input text-lg md:text-2xl font-bold" placeholder="E.G. SUMMER FESTIVAL 2026">
                 </div>
 
-                <div class="text-left flex flex-col gap-2 mb-4">
-                    <label class="font-bold uppercase text-sm md:text-lg">Location (Optional):</label>
+                <div class="text-left flex flex-col gap-2 mb-6">
+                    <label class="font-bold uppercase text-sm md:text-lg text-[var(--fg)] opacity-80">Location (Optional):</label>
                     <input type="text" id="show-location-input" class="brutal-input text-lg md:text-2xl font-bold" placeholder="E.G. MAIN STAGE">
                 </div>
 
@@ -248,7 +263,7 @@
 
             <!-- Recent Shows -->
             <div id="recent-shows-wrapper" class="w-full max-w-2xl hidden">
-                <h3 class="text-lg md:text-2xl font-bold mb-4 uppercase text-center border-b-4 border-[var(--fg)] pb-2">Recent Shows</h3>
+                <h3 class="text-lg md:text-2xl font-bold mb-4 uppercase text-center border-b-2 border-[var(--border)] pb-2">Recent Shows</h3>
                 <div id="recent-shows-list" class="flex flex-col gap-4">
                     <!-- Injected via JS -->
                 </div>
@@ -263,11 +278,11 @@
                 <!-- Steps will be generated here -->
             </div>
 
-            <div id="finish-screen" class="hidden brutal-border p-8 md:p-12 brutal-shadow bg-[var(--accent)] text-[var(--accent-fg)] text-center mt-6 md:mt-8">
-                <h2 class="text-3xl md:text-5xl font-bold mb-3 md:mb-4 leading-tight">SETUP COMPLETE</h2>
+            <div id="finish-screen" class="hidden brutal-border p-8 md:p-12 brutal-shadow bg-[var(--surface)] text-[var(--fg)] border-[var(--accent)] text-center mt-6 md:mt-8">
+                <h2 class="text-3xl md:text-5xl font-bold mb-3 md:mb-4 leading-tight text-[var(--accent)]">SETUP COMPLETE</h2>
                 <p class="text-lg md:text-2xl font-bold mb-6">ALL SYSTEMS GO. REVIEW YOUR NOTES OR COPY THE SUMMARY BELOW.</p>
-                <textarea id="summary-textarea" class="brutal-input text-base md:text-lg font-bold w-full text-left bg-[var(--bg)] text-[var(--fg)] p-4 mb-4 overflow-hidden border-2" readonly></textarea>
-                <button id="copy-summary-btn" class="brutal-btn w-full py-4 text-xl bg-[var(--bg)] text-[var(--fg)]">COPY SUMMARY TO CLIPBOARD</button>
+                <textarea id="summary-textarea" class="brutal-input text-base md:text-lg font-bold w-full text-left bg-[var(--bg)] text-[var(--fg)] p-4 mb-4 overflow-hidden" readonly></textarea>
+                <button id="copy-summary-btn" class="brutal-btn w-full py-4 text-xl">COPY SUMMARY TO CLIPBOARD</button>
             </div>
             
             <button id="jump-to-active-btn" class="hidden fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 brutal-btn-accent px-6 py-4 text-xl md:text-2xl w-[90%] md:w-auto whitespace-nowrap brutal-shadow">
@@ -436,14 +451,14 @@
                 const isComplete = show.currentIndex >= show.checklist.length;
                 
                 const div = document.createElement('div');
-                div.className = 'brutal-border p-4 bg-[var(--bg)] brutal-shadow flex flex-col md:flex-row justify-between items-start md:items-center gap-4 transition-all hover:-translate-y-1';
+                div.className = 'brutal-border p-4 bg-[var(--surface)] brutal-shadow flex flex-col md:flex-row justify-between items-start md:items-center gap-4 transition-all hover:-translate-y-1';
                 div.innerHTML = `
                     <div class="flex-grow">
-                        <div class="text-xs md:text-sm font-bold opacity-70 block">${show.date} ${show.location ? `| ${show.location}` : ''}</div>
+                        <div class="text-xs md:text-sm font-bold opacity-70 block text-[var(--fg)]">${show.date} ${show.location ? `| ${show.location}` : ''}</div>
                         <div class="text-xl md:text-2xl font-bold uppercase truncate">${show.name}</div>
-                        <div class="text-sm font-bold mt-1 ${isComplete ? 'text-[var(--accent)]' : ''}">PROGRESS: ${show.currentIndex}/${show.checklist.length} (${progressPct}%)</div>
+                        <div class="text-sm font-bold mt-1 ${isComplete ? 'text-[var(--accent)]' : 'text-[var(--fg)] opacity-80'}">PROGRESS: ${show.currentIndex}/${show.checklist.length} (${progressPct}%)</div>
                     </div>
-                    <button class="brutal-btn px-6 py-4 text-lg w-full md:w-auto" onclick="loadShow('${show.id}')">
+                    <button class="${isComplete ? 'brutal-btn' : 'brutal-btn-accent'} px-6 py-4 text-lg w-full md:w-auto" onclick="loadShow('${show.id}')">
                         ${isComplete ? 'REVIEW' : 'LOAD'}
                     </button>
                 `;
@@ -482,32 +497,31 @@
             checklist.forEach((item, index) => {
                 const div = document.createElement('div');
                 div.id = `step-${index}`;
-                // Using the exact dimensions/styling from the original step container
-                div.className = 'step-card brutal-border p-5 md:p-8 brutal-shadow bg-[var(--bg)] relative transition-all duration-300';
+                div.className = 'step-card brutal-border p-5 md:p-8 brutal-shadow bg-[var(--surface)] relative transition-all duration-300';
                 
                 div.innerHTML = `
                     <div class="step-badge absolute -top-4 md:-top-5 left-2 md:left-4 px-2 md:px-4 py-1 font-bold brutal-border text-sm md:text-lg uppercase">
                         STEP ${index + 1}
                     </div>
                     
-                    <div class="mt-3 md:mt-4 mb-1 md:mb-2 text-sm md:text-xl font-bold uppercase tracking-widest opacity-70">
+                    <div class="mt-3 md:mt-4 mb-1 md:mb-2 text-sm md:text-xl font-bold uppercase tracking-widest text-[var(--fg)] opacity-60">
                         ${item.category}
                     </div>
                     
-                    <h2 class="text-2xl md:text-5xl font-bold uppercase mb-4 md:mb-6 leading-tight">
+                    <h2 class="text-2xl md:text-5xl font-bold uppercase mb-4 md:mb-6 leading-tight text-[var(--fg)]">
                         ${item.task}
                     </h2>
 
                     <div class="mb-4 md:mb-6">
-                        <label class="block font-bold mb-1 md:mb-2 text-sm md:text-lg uppercase">Remarks / Notes:</label>
-                        <textarea id="remark-${index}" rows="3" class="brutal-input text-base md:text-lg font-bold border-2" placeholder="ENTER REMARKS HERE...">${item.remarks}</textarea>
+                        <label class="block font-bold mb-1 md:mb-2 text-sm md:text-lg uppercase text-[var(--fg)] opacity-80">Remarks / Notes:</label>
+                        <textarea id="remark-${index}" rows="3" class="brutal-input text-base md:text-lg font-bold" placeholder="ENTER REMARKS HERE...">${item.remarks}</textarea>
                     </div>
 
                     <button id="btn-complete-${index}" class="brutal-btn-accent w-full py-4 md:py-6 text-lg md:text-3xl hidden">
                         MARK STEP COMPLETE
                     </button>
                     
-                    <div id="status-${index}" class="hidden text-xl md:text-2xl font-bold text-center border-t-4 border-dashed border-[var(--fg)] pt-4 mt-4 opacity-70">
+                    <div id="status-${index}" class="hidden text-xl md:text-2xl font-bold text-center border-t-2 border-[var(--border)] pt-4 mt-4 text-[var(--fg)] opacity-60">
                         ✓ COMPLETED
                     </div>
                 `;
@@ -579,14 +593,14 @@
                 
                 if (index < currentIndex) {
                     // --- COMPLETED ---
-                    stepDiv.style.opacity = '0.7';
+                    stepDiv.style.opacity = '0.5';
                     stepDiv.style.pointerEvents = 'auto'; // Still allow text editing
-                    stepDiv.style.filter = 'grayscale(80%)';
+                    stepDiv.style.filter = 'grayscale(100%)';
                     btn.classList.add('hidden');
                     status.classList.remove('hidden');
                     
-                    badge.style.backgroundColor = 'var(--fg)';
-                    badge.style.color = 'var(--bg)';
+                    badge.style.backgroundColor = 'var(--border)';
+                    badge.style.color = 'var(--fg)';
                     badge.innerText = 'COMPLETED';
                 } else if (index === currentIndex) {
                     // --- ACTIVE ---
@@ -598,6 +612,7 @@
                     
                     badge.style.backgroundColor = 'var(--accent)';
                     badge.style.color = 'var(--accent-fg)';
+                    badge.style.borderColor = 'var(--accent)';
                     badge.innerText = 'ACTIVE STEP';
                 } else {
                     // --- LOCKED (FUTURE) ---
@@ -655,9 +670,9 @@
         startBtn.addEventListener('click', () => {
             const name = showNameInput.value.trim();
             if (!name) {
-                showNameInput.style.borderColor = 'red';
+                showNameInput.style.borderColor = 'var(--accent)';
                 showNameInput.focus();
-                setTimeout(() => showNameInput.style.borderColor = '', 1000);
+                setTimeout(() => showNameInput.style.borderColor = 'var(--border)', 1000);
                 return;
             }
 
