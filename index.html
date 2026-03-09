@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#E5E5E5">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>GrandMA3 Setup PWA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+
+        :root {
+            /* Theme 0: Default Brutalist Light */
+            --bg: #E5E5E5;
+            --fg: #111111;
+            --accent: #FF3300;
+            --accent-fg: #111111;
+        }
+
+        [data-theme="1"] {
+            /* Theme 1: High Contrast Blue */
+            --bg: #0000FF;
+            --fg: #FFFFFF;
+            --accent: #FFFF00;
+            --accent-fg: #000000;
+        }
+
+        [data-theme="2"] {
+            /* Theme 2: Hacker Terminal */
+            --bg: #111111;
+            --fg: #00FF00;
+            --accent: #FF00FF;
+            --accent-fg: #FFFFFF;
+        }
+
+        [data-theme="3"] {
+            /* Theme 3: Warning Yellow */
+            --bg: #FFFF00;
+            --fg: #111111;
+            --accent: #0000FF;
+            --accent-fg: #FFFFFF;
+        }
+
+        body {
+            font-family: 'Space Mono', monospace;
+            background-color: var(--bg);
+            color: var(--fg);
+            transition: background-color 0s, color 0s;
+            overflow-x: hidden;
+            /* iPhone Notch & Safe Area padding */
+            padding-top: max(1rem, env(safe-area-inset-top));
+            padding-bottom: max(1rem, env(safe-area-inset-bottom));
+            padding-left: max(1rem, env(safe-area-inset-left));
+            padding-right: max(1rem, env(safe-area-inset-right));
+        }
+
+        /* Brutalist UI Components */
+        .brutal-border {
+            border: 3px solid var(--fg);
+        }
+        @media (min-width: 768px) {
+            .brutal-border { border: 4px solid var(--fg); }
+        }
+
+        .brutal-shadow {
+            box-shadow: 4px 4px 0px var(--fg);
+        }
+        @media (min-width: 768px) {
+            .brutal-shadow { box-shadow: 8px 8px 0px var(--fg); }
+        }
+
+        .brutal-btn {
+            background-color: var(--bg);
+            color: var(--fg);
+            border: 3px solid var(--fg);
+            box-shadow: 4px 4px 0px var(--fg);
+            text-transform: uppercase;
+            font-weight: bold;
+            transition: transform 0.1s, box-shadow 0.1s;
+            cursor: pointer;
+            min-height: 44px; /* Touch target size for mobile */
+        }
+
+        .brutal-btn:active {
+            transform: translate(4px, 4px);
+            box-shadow: 0px 0px 0px var(--fg);
+        }
+
+        .brutal-btn-accent {
+            background-color: var(--accent);
+            color: var(--accent-fg);
+            border: 3px solid var(--fg);
+            box-shadow: 4px 4px 0px var(--fg);
+            text-transform: uppercase;
+            font-weight: bold;
+            transition: transform 0.1s, box-shadow 0.1s;
+            cursor: pointer;
+            min-height: 44px;
+        }
+
+        .brutal-btn-accent:active {
+            transform: translate(4px, 4px);
+            box-shadow: 0px 0px 0px var(--fg);
+        }
+
+        @media (min-width: 768px) {
+            .brutal-btn, .brutal-btn-accent {
+                border-width: 4px;
+                box-shadow: 6px 6px 0px var(--fg);
+            }
+            .brutal-btn:active, .brutal-btn-accent:active {
+                transform: translate(6px, 6px);
+            }
+        }
+
+        .brutal-input {
+            background-color: var(--bg);
+            color: var(--fg);
+            border: 4px solid var(--fg);
+            padding: 0.5rem;
+            width: 100%;
+            outline: none;
+            resize: vertical;
+        }
+
+        .brutal-input:focus {
+            border-color: var(--accent);
+            box-shadow: 6px 6px 0px var(--accent);
+        }
+
+        /* Warning Overlay Animation */
+        @keyframes blink {
+            0%, 49% { background-color: #FF0000; color: #FFFFFF; }
+            50%, 100% { background-color: #FFFFFF; color: #FF0000; }
+        }
+
+        #warning-overlay.active {
+            display: flex;
+            animation: blink 0.2s infinite;
+        }
+
+        /* Utilities */
+        .completed-item {
+            opacity: 0.6;
+            filter: grayscale(100%);
+        }
+        
+        .completed-item:hover {
+            opacity: 1;
+            filter: none;
+        }
+
+        .hide { display: none !important; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col p-4 md:p-8" data-theme="0">
+
+    <!-- Header -->
+    <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-8 gap-3 md:gap-4 brutal-border p-3 md:p-4 bg-[var(--bg)] brutal-shadow relative z-10">
+        <div>
+            <h1 class="text-2xl md:text-5xl font-bold uppercase tracking-tighter leading-tight">GrandMA3 Setup</h1>
+            <p class="text-sm md:text-lg font-bold mt-1 md:mt-2" id="progress-text">PROGRESS: 0 / 16</p>
+        </div>
+        <button id="theme-btn" class="brutal-btn px-4 py-2 md:px-6 md:py-3 text-sm md:text-lg w-full md:w-auto">CHANGE THEME</button>
+    </header>
+
+    <!-- Start Screen -->
+    <main id="start-screen" class="flex-grow flex items-center justify-center flex-col z-10 w-full">
+        <div class="brutal-border p-6 md:p-8 brutal-shadow bg-[var(--bg)] w-full max-w-2xl text-center">
+            <h2 class="text-xl md:text-3xl font-bold mb-4 md:mb-6 leading-tight">SYSTEM READINESS CHECK</h2>
+            <p class="mb-6 md:mb-8 text-sm md:text-xl">Sequential checklist enforcement active. You cannot advance until the current step is marked complete. Exiting before completion will trigger an alarm.</p>
+            <button id="start-btn" class="brutal-btn-accent text-lg md:text-2xl px-4 py-4 md:px-8 md:py-6 w-full">START SEQUENCE</button>
+        </div>
+    </main>
+
+    <!-- App Content -->
+    <main id="app-content" class="flex-grow hidden flex-col max-w-4xl mx-auto w-full z-10 pb-24 relative">
+        
+        <div id="steps-container" class="flex flex-col gap-12 pt-[20vh] pb-[50vh]">
+            <!-- Steps will be generated here -->
+        </div>
+
+        <div id="finish-screen" class="hidden brutal-border p-8 md:p-12 brutal-shadow bg-[var(--accent)] text-[var(--accent-fg)] text-center mt-6 md:mt-8">
+            <h2 class="text-3xl md:text-5xl font-bold mb-3 md:mb-4 leading-tight">SETUP COMPLETE</h2>
+            <p class="text-lg md:text-2xl font-bold mb-6">ALL SYSTEMS GO. REVIEW YOUR NOTES OR COPY THE SUMMARY BELOW.</p>
+            <textarea id="summary-textarea" class="brutal-input text-base md:text-lg font-bold w-full text-left bg-[var(--bg)] text-[var(--fg)] p-4 mb-4 overflow-hidden" readonly></textarea>
+            <button id="copy-summary-btn" class="brutal-btn w-full py-4 text-xl">COPY SUMMARY TO CLIPBOARD</button>
+        </div>
+        
+        <button id="jump-to-active-btn" class="hidden fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 brutal-btn-accent px-6 py-4 text-xl md:text-2xl w-[90%] md:w-auto whitespace-nowrap brutal-shadow">
+            RETURN TO ACTIVE STEP
+        </button>
+    </main>
+
+    <!-- Visual Warning Overlay -->
+    <div id="warning-overlay" class="hidden fixed inset-0 z-50 flex-col items-center justify-center text-center p-4 md:p-8 pointer-events-none">
+        <h1 class="text-5xl md:text-9xl font-bold uppercase tracking-tighter leading-none mb-4 md:mb-8">WARNING</h1>
+        <h2 class="text-2xl md:text-6xl font-bold uppercase">SETUP INCOMPLETE</h2>
+        <p class="text-base md:text-2xl mt-6 md:mt-8 font-bold bg-black text-white p-3 md:p-4">RETURN TO CONSOLE IMMEDIATELY</p>
+    </div>
+
+    <script>
+        // --- Data Structure ---
+        const rawData = [
+            { cat: '1-Presets', items: ['Dimmer', 'Color', 'Gobo', 'Strobe', 'Prism', 'Position', 'Focus', 'Zoom', 'Frost', 'All'] },
+            { cat: '2-Group', items: ['Main group', 'Set design group', 'Songs group'] },
+            { cat: '3-Layout', items: ['Full update all lay out'] },
+            { cat: '4-Patch', items: ['Check all light and all inverted', 'All addressing'] }
+        ];
+
+        let checklist = [];
+        let currentIndex = 0;
+        let isStarted = false;
+        let audioCtx = null;
+        let currentTheme = 0;
+
+        // Flatten data
+        rawData.forEach(group => {
+            group.items.forEach(item => {
+                checklist.push({
+                    category: group.cat,
+                    task: item,
+                    remarks: '',
+                    completed: false
+                });
+            });
+        });
+
+        const totalSteps = checklist.length;
+
+        // --- DOM Elements ---
+        const startScreen = document.getElementById('start-screen');
+        const appContent = document.getElementById('app-content');
+        const startBtn = document.getElementById('start-btn');
+        const themeBtn = document.getElementById('theme-btn');
+        const progressText = document.getElementById('progress-text');
+        
+        const stepsContainer = document.getElementById('steps-container');
+        const jumpToActiveBtn = document.getElementById('jump-to-active-btn');
+        const finishScreen = document.getElementById('finish-screen');
+        const warningOverlay = document.getElementById('warning-overlay');
+
+        const summaryTextarea = document.getElementById('summary-textarea');
+        const copySummaryBtn = document.getElementById('copy-summary-btn');
+
+        let activeObserver = null;
+
+        // --- Audio System ---
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playWarningSound() {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            // Harsh sawtooth alarm
+            osc.type = 'sawtooth';
+            
+            // Modulate frequency to sound like an alarm
+            const now = audioCtx.currentTime;
+            osc.frequency.setValueAtTime(400, now);
+            osc.frequency.setValueAtTime(600, now + 0.1);
+            osc.frequency.setValueAtTime(400, now + 0.2);
+            osc.frequency.setValueAtTime(600, now + 0.3);
+            
+            gain.gain.setValueAtTime(0.5, now);
+            gain.gain.linearRampToValueAtTime(0, now + 0.5);
+            
+            osc.start(now);
+            osc.stop(now + 0.5);
+        }
+
+        // --- App Logic ---
+        function buildSteps() {
+            stepsContainer.innerHTML = '';
+            
+            checklist.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.id = `step-${index}`;
+                // Using the exact dimensions/styling from the original step container
+                div.className = 'step-card brutal-border p-5 md:p-8 brutal-shadow bg-[var(--bg)] relative transition-all duration-300';
+                
+                div.innerHTML = `
+                    <div class="step-badge absolute -top-4 md:-top-5 left-2 md:left-4 px-2 md:px-4 py-1 font-bold brutal-border text-sm md:text-lg uppercase">
+                        STEP ${index + 1}
+                    </div>
+                    
+                    <div class="mt-3 md:mt-4 mb-1 md:mb-2 text-sm md:text-xl font-bold uppercase tracking-widest opacity-70">
+                        ${item.category}
+                    </div>
+                    
+                    <h2 class="text-2xl md:text-5xl font-bold uppercase mb-4 md:mb-6 leading-tight">
+                        ${item.task}
+                    </h2>
+
+                    <div class="mb-4 md:mb-6">
+                        <label class="block font-bold mb-1 md:mb-2 text-sm md:text-lg uppercase">Remarks / Notes:</label>
+                        <textarea id="remark-${index}" rows="3" class="brutal-input text-base md:text-lg font-bold" placeholder="ENTER REMARKS HERE...">${item.remarks}</textarea>
+                    </div>
+
+                    <button id="btn-complete-${index}" class="brutal-btn-accent w-full py-4 md:py-6 text-lg md:text-3xl hidden">
+                        MARK STEP COMPLETE
+                    </button>
+                    
+                    <div id="status-${index}" class="hidden text-xl md:text-2xl font-bold text-center border-t-4 border-dashed border-[var(--fg)] pt-4 mt-4 opacity-70">
+                        ✓ COMPLETED
+                    </div>
+                `;
+                
+                stepsContainer.appendChild(div);
+                
+                // Live binding for remarks so user can go back and edit
+                const textarea = div.querySelector(`#remark-${index}`);
+                textarea.addEventListener('input', (e) => {
+                    checklist[index].remarks = e.target.value;
+                    if (currentIndex >= totalSteps) {
+                        generateSummary(); // Update live if edited after completion
+                    }
+                });
+                
+                // Complete button logic
+                const btn = div.querySelector(`#btn-complete-${index}`);
+                btn.addEventListener('click', () => {
+                    if (index === currentIndex) {
+                        checklist[index].completed = true;
+                        currentIndex++;
+                        updateUI();
+                    }
+                });
+            });
+        }
+
+        function setupObserver(activeEl) {
+            if (activeObserver) activeObserver.disconnect();
+            
+            activeObserver = new IntersectionObserver((entries) => {
+                const entry = entries[0];
+                // Show jump button if active step is out of view
+                if (entry.isIntersecting || currentIndex >= totalSteps) {
+                    jumpToActiveBtn.classList.add('hidden');
+                } else {
+                    jumpToActiveBtn.classList.remove('hidden');
+                }
+            }, { threshold: 0.1 }); // Trigger when less than 10% visible
+            
+            activeObserver.observe(activeEl);
+        }
+
+        function updateUI() {
+            progressText.innerText = `PROGRESS: ${currentIndex} / ${totalSteps}`;
+            
+            checklist.forEach((item, index) => {
+                const stepDiv = document.getElementById(`step-${index}`);
+                const btn = document.getElementById(`btn-complete-${index}`);
+                const status = document.getElementById(`status-${index}`);
+                const badge = stepDiv.querySelector('.step-badge');
+                
+                if (index < currentIndex) {
+                    // --- COMPLETED ---
+                    stepDiv.style.opacity = '0.7';
+                    stepDiv.style.pointerEvents = 'auto'; // Still allow text editing
+                    stepDiv.style.filter = 'grayscale(80%)';
+                    btn.classList.add('hidden');
+                    status.classList.remove('hidden');
+                    
+                    badge.style.backgroundColor = 'var(--fg)';
+                    badge.style.color = 'var(--bg)';
+                    badge.innerText = 'COMPLETED';
+                } else if (index === currentIndex) {
+                    // --- ACTIVE ---
+                    stepDiv.style.opacity = '1';
+                    stepDiv.style.pointerEvents = 'auto';
+                    stepDiv.style.filter = 'none';
+                    btn.classList.remove('hidden');
+                    status.classList.add('hidden');
+                    
+                    badge.style.backgroundColor = 'var(--accent)';
+                    badge.style.color = 'var(--accent-fg)';
+                    badge.innerText = 'ACTIVE STEP';
+                } else {
+                    // --- LOCKED (FUTURE) ---
+                    stepDiv.style.opacity = '0.3';
+                    stepDiv.style.pointerEvents = 'none'; // Lock interaction
+                    stepDiv.style.filter = 'grayscale(100%)';
+                    btn.classList.add('hidden');
+                    status.classList.add('hidden');
+                    
+                    badge.style.backgroundColor = 'var(--bg)';
+                    badge.style.color = 'var(--fg)';
+                    badge.innerText = `LOCKED`;
+                }
+            });
+
+            if (currentIndex >= totalSteps) {
+                stepsContainer.classList.remove('pb-[50vh]');
+                finishScreen.classList.remove('hidden');
+                finishScreen.classList.add('mb-[50vh]');
+                jumpToActiveBtn.classList.add('hidden');
+                
+                generateSummary();
+                
+                setTimeout(() => {
+                    finishScreen.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 100);
+                return;
+            }
+
+            // Smooth scroll to active step
+            const activeEl = document.getElementById(`step-${currentIndex}`);
+            if (activeEl) {
+                setTimeout(() => {
+                    activeEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    setupObserver(activeEl);
+                }, 100);
+            }
+        }
+
+        startBtn.addEventListener('click', () => {
+            initAudio();
+            isStarted = true;
+            startScreen.classList.add('hidden');
+            appContent.classList.remove('hidden');
+            appContent.classList.add('flex');
+            
+            buildSteps();
+            updateUI();
+        });
+
+        jumpToActiveBtn.addEventListener('click', () => {
+            const activeEl = document.getElementById(`step-${currentIndex}`);
+            if (activeEl) {
+                activeEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        });
+
+        themeBtn.addEventListener('click', () => {
+            currentTheme = (currentTheme + 1) % 4;
+            document.body.setAttribute('data-theme', currentTheme.toString());
+            
+            // Update meta theme color based on CSS variable
+            const bgColor = getComputedStyle(document.body).getPropertyValue('--bg').trim();
+            document.querySelector('meta[name="theme-color"]').setAttribute('content', bgColor);
+        });
+
+        // --- Summary Generation ---
+        function generateSummary() {
+            let summaryText = "GRANDMA3 SETUP - COMPLETION LOG\n";
+            summaryText += "================================\n";
+            
+            let currentCat = "";
+            checklist.forEach((item) => {
+                if (item.category !== currentCat) {
+                    summaryText += `\n[ ${item.category.toUpperCase()} ]\n`;
+                    currentCat = item.category;
+                }
+                summaryText += `[X] ${item.task}\n`;
+                if (item.remarks.trim() !== '') {
+                    summaryText += `    > REMARKS: ${item.remarks.trim()}\n`;
+                }
+            });
+            
+            summaryTextarea.value = summaryText;
+            
+            // Automatically resize textarea to fit all text without scrolling inside
+            summaryTextarea.style.height = 'auto';
+            summaryTextarea.style.height = (summaryTextarea.scrollHeight + 10) + 'px';
+        }
+
+        copySummaryBtn.addEventListener('click', () => {
+            summaryTextarea.select();
+            document.execCommand('copy');
+            const originalText = copySummaryBtn.innerText;
+            copySummaryBtn.innerText = "COPIED TO CLIPBOARD!";
+            setTimeout(() => {
+                copySummaryBtn.innerText = originalText;
+            }, 2000);
+        });
+
+        // --- Security & Warning Systems ---
+        
+        let warningActive = false;
+        let warningTimer = null;
+
+        function triggerVisualWarning() {
+            if (warningActive || currentIndex >= totalSteps || !isStarted) return;
+            
+            warningActive = true;
+            warningOverlay.classList.remove('hidden');
+            warningOverlay.classList.add('active');
+            
+            // Loop alarm sound 3 times
+            playWarningSound();
+            setTimeout(playWarningSound, 600);
+            setTimeout(playWarningSound, 1200);
+
+            // Hide warning after 2.5 seconds if mouse returns
+            clearTimeout(warningTimer);
+            warningTimer = setTimeout(() => {
+                warningOverlay.classList.remove('active');
+                warningOverlay.classList.add('hidden');
+                warningActive = false;
+            }, 2500);
+        }
+
+        // Detect mouse leaving the top of the viewport (intent to change tab/close)
+        document.addEventListener('mouseleave', (e) => {
+            if (e.clientY <= 10) {
+                triggerVisualWarning();
+            }
+        });
+
+        // Standard browser beforeunload hook
+        window.addEventListener('beforeunload', (e) => {
+            if (isStarted && currentIndex < totalSteps) {
+                const msg = "SETUP INCOMPLETE. ARE YOU SURE YOU WANT TO LEAVE?";
+                e.preventDefault();
+                e.returnValue = msg;
+                return msg;
+            }
+        });
+        
+    </script>
+</body>
+</html>
