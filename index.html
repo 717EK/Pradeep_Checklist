@@ -49,9 +49,9 @@
             color: var(--fg);
             transition: background-color 0s, color 0s;
             overflow-x: hidden;
-            /* iPhone Notch & Safe Area padding */
-            padding-top: max(1rem, env(safe-area-inset-top));
-            padding-bottom: max(1rem, env(safe-area-inset-bottom));
+            /* Symmetric iPhone Notch & Safe Area padding */
+            padding-top: max(3rem, env(safe-area-inset-top));
+            padding-bottom: max(3rem, env(safe-area-inset-bottom));
             padding-left: max(1rem, env(safe-area-inset-left));
             padding-right: max(1rem, env(safe-area-inset-right));
         }
@@ -159,20 +159,44 @@
 
     <!-- Header -->
     <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-8 gap-3 md:gap-4 brutal-border p-3 md:p-4 bg-[var(--bg)] brutal-shadow relative z-10">
-        <div>
-            <h1 class="text-2xl md:text-5xl font-bold uppercase tracking-tighter leading-tight">GrandMA3 Setup</h1>
+        <div class="w-full md:w-auto">
+            <h1 class="text-2xl md:text-5xl font-bold uppercase tracking-tighter leading-tight" id="header-title">GrandMA3 Setup</h1>
             <p class="text-sm md:text-lg font-bold mt-1 md:mt-2" id="progress-text">PROGRESS: 0 / 16</p>
         </div>
-        <button id="theme-btn" class="brutal-btn px-4 py-2 md:px-6 md:py-3 text-sm md:text-lg w-full md:w-auto">CHANGE THEME</button>
+        <div class="flex gap-2 w-full md:w-auto">
+            <button id="save-exit-btn" class="brutal-btn px-4 py-2 md:px-6 md:py-3 text-sm md:text-lg flex-1 md:flex-none bg-[var(--accent)] text-[var(--accent-fg)] border-[var(--fg)]">SAVE & EXIT</button>
+            <button id="theme-btn" class="brutal-btn px-4 py-2 md:px-6 md:py-3 text-sm md:text-lg flex-1 md:flex-none">THEME</button>
+        </div>
     </header>
 
     <!-- Start Screen -->
-    <main id="start-screen" class="flex-grow flex items-center justify-center flex-col z-10 w-full">
-        <div class="brutal-border p-6 md:p-8 brutal-shadow bg-[var(--bg)] w-full max-w-2xl text-center">
-            <h2 class="text-xl md:text-3xl font-bold mb-4 md:mb-6 leading-tight">SYSTEM READINESS CHECK</h2>
-            <p class="mb-6 md:mb-8 text-sm md:text-xl">Sequential checklist enforcement active. You cannot advance until the current step is marked complete. Exiting before completion will trigger an alarm.</p>
-            <button id="start-btn" class="brutal-btn-accent text-lg md:text-2xl px-4 py-4 md:px-8 md:py-6 w-full">START SEQUENCE</button>
+    <main id="start-screen" class="flex-grow flex items-center justify-center flex-col z-10 w-full gap-8">
+        
+        <!-- Create New Show -->
+        <div class="brutal-border p-6 md:p-8 brutal-shadow bg-[var(--bg)] w-full max-w-2xl text-center flex flex-col gap-4">
+            <h2 class="text-xl md:text-3xl font-bold leading-tight bg-[var(--fg)] text-[var(--bg)] py-2 uppercase">Create New Show</h2>
+            
+            <div class="text-left flex flex-col gap-2 mt-4">
+                <label class="font-bold uppercase text-sm md:text-lg">Show Name (Required):</label>
+                <input type="text" id="show-name-input" class="brutal-input text-lg md:text-2xl font-bold" placeholder="E.G. SUMMER FESTIVAL 2026">
+            </div>
+
+            <div class="text-left flex flex-col gap-2 mb-4">
+                <label class="font-bold uppercase text-sm md:text-lg">Location (Optional):</label>
+                <input type="text" id="show-location-input" class="brutal-input text-lg md:text-2xl font-bold" placeholder="E.G. MAIN STAGE">
+            </div>
+
+            <button id="start-btn" class="brutal-btn-accent text-xl md:text-3xl px-4 py-6 md:px-8 w-full">START SETUP SEQUENCE</button>
         </div>
+
+        <!-- Recent Shows -->
+        <div id="recent-shows-wrapper" class="w-full max-w-2xl hidden">
+            <h3 class="text-lg md:text-2xl font-bold mb-4 uppercase text-center border-b-4 border-[var(--fg)] pb-2">Recent Shows</h3>
+            <div id="recent-shows-list" class="flex flex-col gap-4">
+                <!-- Injected via JS -->
+            </div>
+        </div>
+
     </main>
 
     <!-- App Content -->
@@ -245,7 +269,16 @@
         const summaryTextarea = document.getElementById('summary-textarea');
         const copySummaryBtn = document.getElementById('copy-summary-btn');
 
+        const showNameInput = document.getElementById('show-name-input');
+        const showLocationInput = document.getElementById('show-location-input');
+        const headerTitle = document.getElementById('header-title');
+        const saveExitBtn = document.getElementById('save-exit-btn');
+        const recentShowsWrapper = document.getElementById('recent-shows-wrapper');
+        const recentShowsList = document.getElementById('recent-shows-list');
+
         let activeObserver = null;
+        let currentShowId = null;
+        let currentShowMeta = {};
 
         // --- Audio System ---
         function initAudio() {
@@ -281,6 +314,97 @@
             osc.start(now);
             osc.stop(now + 0.5);
         }
+
+        // --- Data Persistence ---
+        function getSavedShows() {
+            try {
+                const shows = JSON.parse(localStorage.getItem('grandma3_shows')) || [];
+                return shows.sort((a, b) => b.timestamp - a.timestamp); // Sort newest first
+            } catch (e) {
+                return [];
+            }
+        }
+
+        function saveShowsList(shows) {
+            localStorage.setItem('grandma3_shows', JSON.stringify(shows));
+        }
+
+        function saveCurrentShow() {
+            if (!currentShowId) return;
+            const shows = getSavedShows();
+            const showIndex = shows.findIndex(s => s.id === currentShowId);
+            
+            const showData = {
+                id: currentShowId,
+                timestamp: currentShowMeta.timestamp,
+                date: currentShowMeta.date,
+                name: currentShowMeta.name,
+                location: currentShowMeta.location,
+                currentIndex: currentIndex,
+                checklist: checklist
+            };
+
+            if (showIndex > -1) {
+                shows[showIndex] = showData;
+            } else {
+                shows.push(showData);
+            }
+            saveShowsList(shows);
+        }
+
+        function renderRecentShows() {
+            const shows = getSavedShows();
+            if (shows.length === 0) {
+                recentShowsWrapper.classList.add('hidden');
+                return;
+            }
+
+            recentShowsWrapper.classList.remove('hidden');
+            recentShowsList.innerHTML = '';
+
+            shows.forEach(show => {
+                const progressPct = Math.round((show.currentIndex / show.checklist.length) * 100);
+                const isComplete = show.currentIndex >= show.checklist.length;
+                
+                const div = document.createElement('div');
+                div.className = 'brutal-border p-4 bg-[var(--bg)] brutal-shadow flex flex-col md:flex-row justify-between items-start md:items-center gap-4 transition-all hover:-translate-y-1';
+                div.innerHTML = `
+                    <div class="flex-grow">
+                        <div class="text-xs md:text-sm font-bold opacity-70 block">${show.date} ${show.location ? `| ${show.location}` : ''}</div>
+                        <div class="text-xl md:text-2xl font-bold uppercase truncate">${show.name}</div>
+                        <div class="text-sm font-bold mt-1 ${isComplete ? 'text-[var(--accent)]' : ''}">PROGRESS: ${show.currentIndex}/${show.checklist.length} (${progressPct}%)</div>
+                    </div>
+                    <button class="brutal-btn px-6 py-4 text-lg w-full md:w-auto" onclick="loadShow('${show.id}')">
+                        ${isComplete ? 'REVIEW' : 'LOAD'}
+                    </button>
+                `;
+                recentShowsList.appendChild(div);
+            });
+        }
+
+        // Initialize empty checklist structure
+        function initChecklist() {
+            checklist = [];
+            rawData.forEach(group => {
+                group.items.forEach(item => {
+                    checklist.push({ category: group.cat, task: item, remarks: '', completed: false });
+                });
+            });
+        }
+
+        window.loadShow = function(id) {
+            const shows = getSavedShows();
+            const show = shows.find(s => s.id === id);
+            if (!show) return;
+
+            currentShowId = show.id;
+            currentShowMeta = { timestamp: show.timestamp, date: show.date, name: show.name, location: show.location };
+            checklist = show.checklist;
+            currentIndex = show.currentIndex;
+            
+            headerTitle.innerText = currentShowMeta.name.toUpperCase();
+            startApp();
+        };
 
         // --- App Logic ---
         function buildSteps() {
@@ -325,6 +449,7 @@
                 const textarea = div.querySelector(`#remark-${index}`);
                 textarea.addEventListener('input', (e) => {
                     checklist[index].remarks = e.target.value;
+                    saveCurrentShow(); // Auto-save on typing
                     if (currentIndex >= totalSteps) {
                         generateSummary(); // Update live if edited after completion
                     }
@@ -336,6 +461,7 @@
                     if (index === currentIndex) {
                         checklist[index].completed = true;
                         currentIndex++;
+                        saveCurrentShow(); // Auto-save on step complete
                         updateUI();
                     }
                 });
@@ -408,6 +534,7 @@
                 finishScreen.classList.remove('hidden');
                 finishScreen.classList.add('mb-[50vh]');
                 jumpToActiveBtn.classList.add('hidden');
+                saveExitBtn.innerText = "RETURN TO MENU"; // Change button text
                 
                 generateSummary();
                 
@@ -427,7 +554,7 @@
             }
         }
 
-        startBtn.addEventListener('click', () => {
+        function startApp() {
             initAudio();
             isStarted = true;
             startScreen.classList.add('hidden');
@@ -436,6 +563,52 @@
             
             buildSteps();
             updateUI();
+        }
+
+        startBtn.addEventListener('click', () => {
+            const name = showNameInput.value.trim();
+            if (!name) {
+                showNameInput.style.borderColor = 'red';
+                showNameInput.focus();
+                setTimeout(() => showNameInput.style.borderColor = '', 1000);
+                return;
+            }
+
+            // Create new show metadata
+            currentShowId = Date.now().toString();
+            currentShowMeta = {
+                timestamp: Date.now(),
+                date: new Date().toLocaleDateString(),
+                name: name,
+                location: showLocationInput.value.trim()
+            };
+            
+            headerTitle.innerText = currentShowMeta.name.toUpperCase();
+            currentIndex = 0;
+            initChecklist();
+            saveCurrentShow();
+            
+            startApp();
+        });
+
+        saveExitBtn.addEventListener('click', () => {
+            saveCurrentShow();
+            isStarted = false; // Prevents the warning overlay
+            
+            // Reset UI
+            startScreen.classList.remove('hidden');
+            appContent.classList.add('hidden');
+            appContent.classList.remove('flex');
+            finishScreen.classList.add('hidden');
+            jumpToActiveBtn.classList.add('hidden');
+            headerTitle.innerText = "GrandMA3 Setup";
+            saveExitBtn.innerText = "SAVE & EXIT";
+            
+            // Clear inputs
+            showNameInput.value = '';
+            showLocationInput.value = '';
+            
+            renderRecentShows();
         });
 
         jumpToActiveBtn.addEventListener('click', () => {
@@ -456,7 +629,10 @@
 
         // --- Summary Generation ---
         function generateSummary() {
-            let summaryText = "GRANDMA3 SETUP - COMPLETION LOG\n";
+            let summaryText = `GRANDMA3 SETUP - COMPLETION LOG\n`;
+            summaryText += `SHOW: ${currentShowMeta.name.toUpperCase()}\n`;
+            if (currentShowMeta.location) summaryText += `LOCATION: ${currentShowMeta.location.toUpperCase()}\n`;
+            summaryText += `DATE: ${currentShowMeta.date}\n`;
             summaryText += "================================\n";
             
             let currentCat = "";
@@ -494,6 +670,7 @@
         let warningTimer = null;
 
         function triggerVisualWarning() {
+            // Only trigger if started, not finished, and not cleanly exited
             if (warningActive || currentIndex >= totalSteps || !isStarted) return;
             
             warningActive = true;
@@ -524,13 +701,17 @@
         // Standard browser beforeunload hook
         window.addEventListener('beforeunload', (e) => {
             if (isStarted && currentIndex < totalSteps) {
-                const msg = "SETUP INCOMPLETE. ARE YOU SURE YOU WANT TO LEAVE?";
+                saveCurrentShow(); // Auto-save just in case
+                const msg = "SETUP INCOMPLETE. YOUR PROGRESS HAS BEEN SAVED. ARE YOU SURE YOU WANT TO LEAVE?";
                 e.preventDefault();
                 e.returnValue = msg;
                 return msg;
             }
         });
         
+        // Initial render
+        renderRecentShows();
+
     </script>
 </body>
 </html>
