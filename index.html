@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#E5E5E5">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>GrandMA3 Setup PWA</title>
+    <title>Show Checklist PWA</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap');
@@ -89,8 +89,13 @@
             padding-bottom: 0.5rem;
             font-size: 0.875rem;
         }
+        
+        #main-header.slim #header-logo {
+            width: 2rem;
+            height: 2rem;
+        }
 
-        #header-title, #progress-text {
+        #header-title, #progress-text, #header-logo {
             transition: all 0.3s ease;
         }
 
@@ -197,12 +202,24 @@
 
     <!-- Header (Now Sticky) -->
     <header id="main-header" class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 md:gap-4 p-4 md:p-6 bg-[var(--bg)] brutal-shadow w-full">
-        <div class="w-full md:w-auto">
-            <h1 class="text-3xl md:text-5xl font-bold uppercase tracking-tighter leading-tight" id="header-title">GrandMA3 Setup</h1>
-            <p class="text-sm md:text-lg font-bold mt-1 md:mt-2" id="progress-text">PROGRESS: 0 / 16</p>
+        <div class="w-full md:w-auto flex items-center">
+            <!-- Embedded Brutalist Logo -->
+            <svg id="header-logo" class="w-10 h-10 md:w-14 md:h-14 mr-3 md:mr-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Clipboard Background -->
+                <rect x="4" y="4" width="16" height="18" fill="var(--bg)" stroke="var(--fg)" stroke-width="2.5" stroke-linejoin="miter"/>
+                <!-- Clip -->
+                <rect x="8" y="2" width="8" height="5" fill="var(--accent)" stroke="var(--fg)" stroke-width="2.5" stroke-linejoin="miter"/>
+                <!-- Brutalist Checkmark -->
+                <path d="M7 13L10.5 16.5L17 9" stroke="var(--fg)" stroke-width="3" stroke-linecap="square" stroke-linejoin="miter"/>
+            </svg>
+            <div>
+                <h1 class="text-3xl md:text-5xl font-bold uppercase tracking-tighter leading-tight" id="header-title">Show Checklist</h1>
+                <p class="text-sm md:text-lg font-bold mt-1 md:mt-2 hidden" id="progress-text">PROGRESS: 0 / 16</p>
+            </div>
         </div>
-        <div class="flex gap-2 w-full md:w-auto">
-            <button id="save-exit-btn" class="brutal-btn px-4 py-2 md:px-6 md:py-3 text-sm md:text-lg flex-1 md:flex-none bg-[var(--accent)] text-[var(--accent-fg)]">SAVE & EXIT</button>
+        <div class="flex gap-2 w-full md:w-auto mt-2 md:mt-0">
+            <button id="load-shows-btn" class="brutal-btn px-4 py-2 md:px-6 md:py-3 text-sm md:text-lg flex-1 md:flex-none bg-[var(--accent)] text-[var(--accent-fg)]">LOAD</button>
+            <button id="save-exit-btn" class="hidden brutal-btn px-4 py-2 md:px-6 md:py-3 text-sm md:text-lg flex-1 md:flex-none bg-[var(--accent)] text-[var(--accent-fg)]">SAVE & EXIT</button>
             <button id="theme-btn" class="brutal-btn px-4 py-2 md:px-6 md:py-3 text-sm md:text-lg flex-1 md:flex-none">THEME</button>
         </div>
     </header>
@@ -242,7 +259,7 @@
         <!-- App Content -->
         <main id="app-content" class="flex-grow hidden flex-col max-w-4xl mx-auto w-full z-10 pb-24 relative">
             
-            <div id="steps-container" class="flex flex-col gap-12 pt-[10vh] pb-[50vh]">
+            <div id="steps-container" class="flex flex-col gap-12 pt-[35vh] pb-[50vh]">
                 <!-- Steps will be generated here -->
             </div>
 
@@ -315,6 +332,7 @@
         const showLocationInput = document.getElementById('show-location-input');
         const headerTitle = document.getElementById('header-title');
         const saveExitBtn = document.getElementById('save-exit-btn');
+        const loadShowsBtn = document.getElementById('load-shows-btn');
         const recentShowsWrapper = document.getElementById('recent-shows-wrapper');
         const recentShowsList = document.getElementById('recent-shows-list');
 
@@ -535,6 +553,21 @@
             activeObserver.observe(activeEl);
         }
 
+        function centerActiveStep() {
+            const activeEl = document.getElementById(`step-${currentIndex}`);
+            if (activeEl) {
+                // Calculate PERFECT center: Viewport middle minus half the element's height
+                const headerHeight = mainHeader.offsetHeight || 80;
+                const viewportMiddle = (window.innerHeight + headerHeight) / 2;
+                const elementMiddle = activeEl.offsetHeight / 2;
+                
+                const exactCenterY = activeEl.getBoundingClientRect().top + window.scrollY - viewportMiddle + elementMiddle;
+                
+                window.scrollTo({top: exactCenterY, behavior: 'smooth'});
+                setupObserver(activeEl);
+            }
+        }
+
         function updateUI() {
             progressText.innerText = `PROGRESS: ${currentIndex} / ${totalSteps}`;
             
@@ -590,23 +623,14 @@
                 generateSummary();
                 
                 setTimeout(() => {
-                    // Offset scroll position slightly so sticky header doesn't cover title
-                    const y = finishScreen.getBoundingClientRect().top + window.scrollY - 100;
-                    window.scrollTo({top: y, behavior: 'smooth'});
+                    const exactCenterY = finishScreen.getBoundingClientRect().top + window.scrollY - 100;
+                    window.scrollTo({top: exactCenterY, behavior: 'smooth'});
                 }, 100);
                 return;
             }
 
-            // Smooth scroll to active step
-            const activeEl = document.getElementById(`step-${currentIndex}`);
-            if (activeEl) {
-                setTimeout(() => {
-                    // Scroll into view with offset for sticky header
-                    const y = activeEl.getBoundingClientRect().top + window.scrollY - 120;
-                    window.scrollTo({top: y, behavior: 'smooth'});
-                    setupObserver(activeEl);
-                }, 100);
-            }
+            // Fire precise center logic
+            setTimeout(centerActiveStep, 100);
         }
 
         function startApp() {
@@ -616,6 +640,14 @@
             appContent.classList.remove('hidden');
             appContent.classList.add('flex');
             
+            // Push history state to enable "Back Button" trap for Android PWAs
+            window.history.pushState({ locked: true }, '');
+
+            // Update Header for Active Mode
+            progressText.classList.remove('hidden');
+            saveExitBtn.classList.remove('hidden');
+            loadShowsBtn.classList.add('hidden');
+
             buildSteps();
             updateUI();
         }
@@ -656,8 +688,14 @@
             appContent.classList.remove('flex');
             finishScreen.classList.add('hidden');
             jumpToActiveBtn.classList.add('hidden');
-            headerTitle.innerText = "GrandMA3 Setup";
+            headerTitle.innerText = "Show Checklist";
             saveExitBtn.innerText = "SAVE & EXIT";
+            
+            // Revert Header for Start Menu Mode
+            progressText.classList.add('hidden');
+            saveExitBtn.classList.add('hidden');
+            loadShowsBtn.classList.remove('hidden');
+
             window.scrollTo(0,0);
             
             // Clear inputs
@@ -668,10 +706,19 @@
         });
 
         jumpToActiveBtn.addEventListener('click', () => {
-            const activeEl = document.getElementById(`step-${currentIndex}`);
-            if (activeEl) {
-                const y = activeEl.getBoundingClientRect().top + window.scrollY - 120;
-                window.scrollTo({top: y, behavior: 'smooth'});
+            centerActiveStep();
+        });
+
+        loadShowsBtn.addEventListener('click', () => {
+            const shows = getSavedShows();
+            if (shows.length === 0) {
+                const originalText = loadShowsBtn.innerText;
+                loadShowsBtn.innerText = "NO SHOWS YET";
+                setTimeout(() => {
+                    loadShowsBtn.innerText = originalText;
+                }, 1500);
+            } else {
+                recentShowsWrapper.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         });
 
@@ -686,7 +733,7 @@
 
         // --- Summary Generation ---
         function generateSummary() {
-            let summaryText = `GRANDMA3 SETUP - COMPLETION LOG\n`;
+            let summaryText = `SHOW CHECKLIST - COMPLETION LOG\n`;
             summaryText += `SHOW: ${currentShowMeta.name.toUpperCase()}\n`;
             if (currentShowMeta.location) summaryText += `LOCATION: ${currentShowMeta.location.toUpperCase()}\n`;
             summaryText += `DATE: ${currentShowMeta.date}\n`;
@@ -734,6 +781,11 @@
             warningOverlay.classList.remove('hidden');
             warningOverlay.classList.add('active');
             
+            // Haptic Vibration feedback (if supported)
+            if (navigator.vibrate) {
+                navigator.vibrate([400, 200, 400, 200, 400]);
+            }
+            
             // Loop alarm sound 3 times
             playWarningSound();
             setTimeout(playWarningSound, 600);
@@ -748,14 +800,14 @@
             }, 2500);
         }
 
-        // Detect mouse leaving the top of the viewport (intent to change tab/close)
+        // 1. Desktop: Detect mouse leaving the top of the viewport (intent to change tab/close)
         document.addEventListener('mouseleave', (e) => {
             if (e.clientY <= 10) {
                 triggerVisualWarning();
             }
         });
 
-        // Standard browser beforeunload hook
+        // 2. Standard browser beforeunload hook
         window.addEventListener('beforeunload', (e) => {
             if (isStarted && currentIndex < totalSteps) {
                 saveCurrentShow(); // Auto-save just in case
@@ -763,6 +815,23 @@
                 e.preventDefault();
                 e.returnValue = msg;
                 return msg;
+            }
+        });
+
+        // 3. PWA App Switcher / Backgrounding Trap (iOS/Android)
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden' && isStarted && currentIndex < totalSteps) {
+                saveCurrentShow(); // Auto-save on background
+                triggerVisualWarning(); // Will cause app snapshot to flash red in the app switcher
+            }
+        });
+
+        // 4. Android Back Button Trap
+        window.addEventListener('popstate', (e) => {
+            if (isStarted && currentIndex < totalSteps) {
+                // Trap the user by pushing state forward again
+                window.history.pushState({ locked: true }, '');
+                triggerVisualWarning();
             }
         });
         
